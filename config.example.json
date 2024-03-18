@@ -1,0 +1,25 @@
+{
+  "app": {
+    "name": "your-app-name"
+  },
+  "web": {
+    "prefork": false,
+    "port": 3000
+  },
+  "log": {
+    "level": "debug",
+    "output": "stdout"
+  },
+  "database": {
+    "driver": "your-database-driver",
+    "host": "your-database-host",
+    "port": 1234,
+    "user": "your-database-user",
+    "password": "your-database-password",
+    "name": "your-database-name"
+  },
+  "rabbitmq": {
+    "url": "amqp://guest:guest@localhost:5672/",
+    "queue": "your-queue-name"
+  }
+}
