@@ -14,7 +14,7 @@
     "driver": "your-database-driver",
     "host": "your-database-host",
     "port": 1234,
-    "user": "your-database-user",
+    "username": "your-database-user",
     "password": "your-database-password",
     "name": "your-database-name",
     "pool": {

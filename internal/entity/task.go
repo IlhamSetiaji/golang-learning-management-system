@@ -12,8 +12,8 @@ type Task struct {
 	MasterClass     MasterClass      `gorm:"foreignKey:MasterClassID;references:ID"`
 	Title           string           `json:"title"`
 	Description     string           `json:"description" gorm:"type:text"`
-	StartTime       time.Time        `json:"start_time"`
-	EndTime         time.Time        `json:"end_time"`
+	StartTime       time.Time        `json:"start_time" gorm:"type:datetime;`
+	EndTime         time.Time        `json:"end_time" gorm:"type:datetime;`
 	IsDone          bool             `json:"is_done" gorm:"default:false"`
 	MenteeTasks     []MenteeTask     `gorm:"foreignKey:TaskID;references:ID"`
 	TaskAttachments []TaskAttachment `gorm:"foreignKey:TaskID;references:ID"`
