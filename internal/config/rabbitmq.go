@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"log"
 
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -41,4 +42,42 @@ func NewRabbitMQ(viper *viper.Viper) *RabbitMQ {
 		Channel: ch,
 		Queue:   q,
 	}
+}
+
+func (r *RabbitMQ) Publish(body string) {
+	ctx := context.Background() // Or use a different context if you have one
+	err := r.Channel.PublishWithContext(
+		ctx,
+		"",           // exchange
+		r.Queue.Name, // routing key
+		false,        // mandatory
+		false,        // immediate
+		amqp.Publishing{
+			ContentType: "text/plain",
+			Body:        []byte(body),
+		})
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func (r *RabbitMQ) Consume() {
+	msgs, err := r.Channel.Consume(
+		r.Queue.Name, // queue
+		"",           // consumer
+		true,         // auto-ack
+		false,        // exclusive
+		false,        // no-local
+		false,        // no-wait
+		nil,          // args
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	go func() {
+		for d := range msgs {
+			log.Printf("Received a message: %s", d.Body)
+		}
+	}()
 }
