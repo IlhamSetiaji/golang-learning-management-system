@@ -16,7 +16,12 @@
     "port": 1234,
     "user": "your-database-user",
     "password": "your-database-password",
-    "name": "your-database-name"
+    "name": "your-database-name",
+    "pool": {
+      "idle": 10,
+      "max": 100,
+      "lifetime": 300
+    }
   },
   "rabbitmq": {
     "url": "amqp://guest:guest@localhost:5672/",
