@@ -1,0 +1,25 @@
+{
+  "app": {
+    "name": "golang-learning-management-system"
+  },
+  "web": {
+    "prefork": false,
+    "port": 3000
+  },
+  "log": {
+    "level": "debug",
+    "output": "stdout"
+  },
+  "database": {
+    "driver": "mysql",
+    "host": "localhost",
+    "port": 3306,
+    "user": "root",
+    "password": "",
+    "name": "golang-learning-management-system"
+  },
+  "rabbitmq": {
+    "url": "amqp://guest:guest@localhost:5672/",
+    "queue": "golang-learning-management-system"
+  }
+}
