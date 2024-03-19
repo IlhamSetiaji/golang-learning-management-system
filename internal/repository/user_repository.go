@@ -1,12 +1,15 @@
 package repository
 
 import (
+	"errors"
+
 	"github.com/IlhamSetiaji/go-lms/internal/entity"
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 )
 
 type UserRepository struct {
-	Repository[entity.User]
+	DB  *gorm.DB
 	Log *logrus.Logger
 }
 
@@ -17,13 +20,14 @@ type UserRepositoryInterface interface {
 	Update(entity *entity.User) (*entity.User, error)
 	Delete(entity *entity.User) (*entity.User, error)
 	FindByField(entity *[]entity.User, field string, value string) (*[]entity.User, error)
-	FindFirstByField(entity *entity.User, field string, value string) (*entity.User, error)
+	FindFirstByField(db *gorm.DB, entity *entity.User, field string, value string) (*entity.User, error)
 	CountAll(entity *entity.User) (int64, error)
 	CountByField(entity *entity.User, field string, value string) (int64, error)
 }
 
-func NewUserRepository(log *logrus.Logger) UserRepositoryInterface {
+func NewUserRepository(db *gorm.DB, log *logrus.Logger) UserRepositoryInterface {
 	return &UserRepository{
+		DB:  db,
 		Log: log,
 	}
 }
@@ -52,8 +56,17 @@ func (r *UserRepository) FindByField(entity *[]entity.User, field string, value 
 	return entity, r.DB.Where(field+" = ?", value).Find(entity).Error
 }
 
-func (r *UserRepository) FindFirstByField(entity *entity.User, field string, value string) (*entity.User, error) {
-	return entity, r.DB.Where(field+" = ?", value).First(entity).Error
+func (r *UserRepository) FindFirstByField(db *gorm.DB, entity *entity.User, field string, value string) (*entity.User, error) {
+	if db == nil {
+		return nil, errors.New("database connection is not initialized")
+	}
+
+	err := db.Where(field+" = ?", value).First(entity).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return entity, nil
 }
 
 func (r *UserRepository) CountAll(entity *entity.User) (int64, error) {

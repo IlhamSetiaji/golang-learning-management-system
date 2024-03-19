@@ -18,13 +18,11 @@ func (c *RouteConfig) SetupRoutes() {
 		})
 	})
 
-	c.SetupUserRoutes()
-
-	c.App.Run()
+	c.SetupAuthRoutes()
 }
 
-func (c *RouteConfig) SetupUserRoutes() {
-	userRoutes := c.App.Group("/users")
+func (c *RouteConfig) SetupAuthRoutes() {
+	userRoutes := c.App.Group("/auth")
 	{
 		userRoutes.POST("/login", c.UserController.Login)
 	}

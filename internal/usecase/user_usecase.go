@@ -20,14 +20,14 @@ type UserUseCase struct {
 	Log            *logrus.Logger
 	Validate       *validator.Validate
 	UserRepository repository.UserRepositoryInterface
-	Producer       *messaging.Producer
+	Producer       *messaging.UserProducer
 }
 
 type UserUseCaseInterface interface {
 	Login(ctx context.Context, request *request.UserLoginRequest) (*response.UserLoginResponse, error)
 }
 
-func NewUserUseCase(db *gorm.DB, log *logrus.Logger, validate *validator.Validate, userRepository repository.UserRepositoryInterface, producer *messaging.Producer) UserUseCaseInterface {
+func NewUserUseCase(db *gorm.DB, log *logrus.Logger, validate *validator.Validate, userRepository repository.UserRepositoryInterface, producer *messaging.UserProducer) UserUseCaseInterface {
 	return &UserUseCase{
 		DB:             db,
 		Log:            log,
@@ -38,11 +38,13 @@ func NewUserUseCase(db *gorm.DB, log *logrus.Logger, validate *validator.Validat
 }
 
 func (c *UserUseCase) Login(ctx context.Context, request *request.UserLoginRequest) (*response.UserLoginResponse, error) {
+	tx := c.DB.WithContext(ctx).Begin()
+	defer tx.Rollback()
 	err := c.Validate.Struct(request)
 	if err != nil {
 		return nil, err
 	}
-	user, err := c.UserRepository.FindFirstByField(&entity.User{}, "username", request.Username)
+	user, err := c.UserRepository.FindFirstByField(tx, &entity.User{}, "username", request.Username)
 	if err != nil {
 		c.Log.Errorf("Error when finding user by username: %v", err)
 		return nil, err

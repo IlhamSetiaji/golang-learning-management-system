@@ -15,7 +15,7 @@ func GenerateToken(userId uint) (string, error) {
 	})
 
 	// Sign and get the complete encoded token as a string using the secret
-	tokenString, err := token.SignedString(viper.GetString("jwt.secret"))
+	tokenString, err := token.SignedString([]byte(viper.GetString("jwt.secret")))
 	if err != nil {
 		return "", err
 	}

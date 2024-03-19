@@ -2,58 +2,47 @@ package messaging
 
 import (
 	"context"
-	"log"
+	"encoding/json"
 
-	amqp "github.com/rabbitmq/amqp091-go"
+	"github.com/IlhamSetiaji/go-lms/internal/model"
+	"github.com/rabbitmq/amqp091-go"
+	"github.com/sirupsen/logrus"
 )
 
-type Producer struct {
-	Channel *amqp.Channel
-	Queue   amqp.Queue
-	Log     *log.Logger
+type Producer[T model.Event] struct {
+	Channel *amqp091.Channel
+	Queue   string
+	Log     *logrus.Logger
 }
 
-func NewProducer(amqpURL string, queueName string) (*Producer, error) {
-	conn, err := amqp.Dial(amqpURL)
-	if err != nil {
-		return nil, err
-	}
-
-	ch, err := conn.Channel()
-	if err != nil {
-		return nil, err
-	}
-
-	q, err := ch.QueueDeclare(
-		queueName, // name
-		false,     // durable
-		false,     // delete when unused
-		false,     // exclusive
-		false,     // no-wait
-		nil,       // arguments
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Producer{Channel: ch, Queue: q}, nil
+func (p *Producer[T]) GetQueue() *string {
+	return &p.Queue
 }
 
-func (p *Producer) Publish(body string) error {
-	ctx := context.Background() // Or use a different context if you have one
-	err := p.Channel.PublishWithContext(
-		ctx,
-		"",           // exchange
-		p.Queue.Name, // routing key
-		false,        // mandatory
-		false,        // immediate
-		amqp.Publishing{
-			ContentType: "text/plain",
-			Body:        []byte(body),
-		})
+func (p *Producer[T]) Send(ctx context.Context, event T) error {
+	bodyBytes, err := json.Marshal(event)
 	if err != nil {
-		p.Log.Fatal(err)
+		p.Log.WithError(err).Error("failed to marshal event")
 		return err
 	}
+
+	err = p.Channel.PublishWithContext(
+		ctx,
+		"",      // exchange
+		p.Queue, // routing key
+		false,   // mandatory
+		false,   // immediate
+		amqp091.Publishing{
+			ContentType: "application/json",
+			Body:        bodyBytes,
+			Headers: amqp091.Table{
+				"id": event.GetId(),
+			},
+		})
+	if err != nil {
+		p.Log.WithError(err).Error("failed to publish message")
+		return err
+	}
+
 	return nil
 }

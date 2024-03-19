@@ -8,6 +8,7 @@ import (
 	"github.com/IlhamSetiaji/go-lms/internal/usecase"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/rabbitmq/amqp091-go"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
@@ -19,15 +20,18 @@ type BootstrapConfig struct {
 	Log      *logrus.Logger
 	Validate *validator.Validate
 	Config   *viper.Viper
-	Producer *messaging.Producer
+	Producer *amqp091.Channel
 }
 
 func Bootstrap(config *BootstrapConfig) {
 	// setup repositories
-	userRepository := repository.NewUserRepository(config.Log)
+	userRepository := repository.NewUserRepository(config.DB, config.Log)
+
+	// setup producers
+	userProducer := messaging.NewUserProducer(config.Producer, config.Log)
 
 	// setup usecases
-	userUseCase := usecase.NewUserUseCase(config.DB, config.Log, config.Validate, userRepository, config.Producer)
+	userUseCase := usecase.NewUserUseCase(config.DB, config.Log, config.Validate, userRepository, userProducer)
 
 	// setup controllers
 	userController := controller.NewUserController(config.Log, userUseCase)
