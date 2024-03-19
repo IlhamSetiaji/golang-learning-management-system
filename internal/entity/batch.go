@@ -11,6 +11,8 @@ type Batch struct {
 	ProgramID             uint          `json:"program_id"`
 	Program               Program       `gorm:"foreignKey:ProgramID;references:ID"`
 	Name                  string        `json:"name"`
+	Description           string        `json:"description" gorm:"type:text"`
+	Image                 string        `json:"image" gorm:"type:text;default:null"`
 	RegistrationStartDate time.Time     `json:"registration_start_date" gorm:"type:datetime;`
 	RegistrationEndDate   time.Time     `json:"registration_end_date"	gorm:"type:datetime;`
 	StartDate             time.Time     `json:"start_date"	gorm:"type:datetime;`

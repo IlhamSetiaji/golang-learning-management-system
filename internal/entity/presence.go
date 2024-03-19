@@ -15,7 +15,7 @@ type Presence struct {
 	Name          string      `json:"name"`
 	Summary       string      `json:"summary" gorm:"type:text"`
 	Duration      int         `json:"duration"`
-	StartTime     time.Time   `json:"start_time" gorm:"type:datetime;`
-	EndTime       time.Time   `json:"end_time" gorm:"type:datetime;`
+	StartTime     time.Time   `json:"start_time" gorm:"type:datetime;"`
+	EndTime       time.Time   `json:"end_time" gorm:"type:datetime;"`
 	Users         []User      `gorm:"many2many:presence_users;"`
 }
