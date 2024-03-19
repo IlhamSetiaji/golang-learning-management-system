@@ -32,6 +32,10 @@ func (r *Repository[T]) FindByField(db *gorm.DB, entity *[]T, field string, valu
 	return db.Where(field+" = ?", value).Find(entity).Error
 }
 
+func (r *Repository[T]) FindFirstByField(db *gorm.DB, entity *T, field string, value string) error {
+	return db.Where(field+" = ?", value).First(entity).Error
+}
+
 func (r *Repository[T]) CountAll(db *gorm.DB, entity *[]T) int64 {
 	var count int64
 	db.Model(entity).Count(&count)
