@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/IlhamSetiaji/go-lms/internal/entity"
+	"github.com/IlhamSetiaji/go-lms/internal/messaging"
 	"github.com/IlhamSetiaji/go-lms/internal/repository"
 	"github.com/IlhamSetiaji/go-lms/internal/request"
 	"github.com/IlhamSetiaji/go-lms/internal/response"
@@ -18,15 +19,21 @@ type UserUseCase struct {
 	DB             *gorm.DB
 	Log            *logrus.Logger
 	Validate       *validator.Validate
-	UserRepository *repository.UserRepository
+	UserRepository repository.UserRepositoryInterface
+	Producer       *messaging.Producer
 }
 
-func NewUserUseCase(db *gorm.DB, log *logrus.Logger, validate *validator.Validate, userRepository *repository.UserRepository) *UserUseCase {
+type UserUseCaseInterface interface {
+	Login(ctx context.Context, request *request.UserLoginRequest) (*response.UserLoginResponse, error)
+}
+
+func NewUserUseCase(db *gorm.DB, log *logrus.Logger, validate *validator.Validate, userRepository repository.UserRepositoryInterface, producer *messaging.Producer) UserUseCaseInterface {
 	return &UserUseCase{
 		DB:             db,
 		Log:            log,
 		Validate:       validate,
 		UserRepository: userRepository,
+		Producer:       producer,
 	}
 }
 
@@ -35,9 +42,13 @@ func (c *UserUseCase) Login(ctx context.Context, request *request.UserLoginReque
 	if err != nil {
 		return nil, err
 	}
-	user := new(entity.User)
-	if err := c.UserRepository.FindFirstByField(c.DB, user, "username", request.Username); err != nil {
+	user, err := c.UserRepository.FindFirstByField(&entity.User{}, "username", request.Username)
+	if err != nil {
 		c.Log.Errorf("Error when finding user by username: %v", err)
+		return nil, err
+	}
+	if user == nil {
+		c.Log.Errorf("User not found")
 		return nil, err
 	}
 	checkedPassword := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(request.Password))
