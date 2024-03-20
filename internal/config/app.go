@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/IlhamSetiaji/go-lms/internal/http/controller"
+	"github.com/IlhamSetiaji/go-lms/internal/http/middleware"
 	"github.com/IlhamSetiaji/go-lms/internal/http/route"
 	"github.com/IlhamSetiaji/go-lms/internal/messaging"
 	"github.com/IlhamSetiaji/go-lms/internal/repository"
@@ -36,10 +37,14 @@ func Bootstrap(config *BootstrapConfig) {
 	// setup controllers
 	userController := controller.NewUserController(config.Log, userUseCase)
 
+	// setup middlewares
+	authMiddleware := middleware.NewAuth(config.Config)
+
 	// setup routes
 	routeConfig := route.RouteConfig{
 		App:            config.App,
 		UserController: userController,
+		AuthMiddleware: authMiddleware,
 	}
 	routeConfig.SetupRoutes()
 }

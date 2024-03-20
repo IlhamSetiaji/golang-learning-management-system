@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"time"
 
 	"github.com/IlhamSetiaji/go-lms/internal/entity"
 	"github.com/IlhamSetiaji/go-lms/internal/messaging"
@@ -25,6 +26,7 @@ type UserUseCase struct {
 
 type UserUseCaseInterface interface {
 	Login(ctx context.Context, request *request.UserLoginRequest) (*response.UserLoginResponse, error)
+	Me(ctx context.Context, userId string) (*response.UserMeResponse, error)
 }
 
 func NewUserUseCase(db *gorm.DB, log *logrus.Logger, validate *validator.Validate, userRepository repository.UserRepositoryInterface, producer *messaging.UserProducer) UserUseCaseInterface {
@@ -70,5 +72,31 @@ func (c *UserUseCase) Login(ctx context.Context, request *request.UserLoginReque
 		Name:      user.Name,
 		TokenType: "Bearer",
 		Token:     token,
+		Expires:   time.Now().Add(time.Hour * 72).Unix(),
+	}, nil
+}
+
+func (c *UserUseCase) Me(ctx context.Context, userId string) (*response.UserMeResponse, error) {
+	tx := c.DB.WithContext(ctx).Begin()
+	defer tx.Rollback()
+	user, err := c.UserRepository.GetMyProfile(tx, &entity.User{}, userId)
+	if err != nil {
+		c.Log.Errorf("Error when finding user by id: %v", err)
+		return nil, err
+	}
+	var roles []response.RoleResponse
+	for _, role := range user.Roles {
+		roles = append(roles, response.RoleResponse{
+			ID:   role.ID,
+			Name: role.Name,
+		})
+	}
+	return &response.UserMeResponse{
+		ID:              user.ID,
+		Username:        user.Username,
+		Email:           user.Email,
+		Name:            user.Name,
+		EmailVerifiedAt: user.EmailVerifiedAt.String(),
+		Roles:           roles,
 	}, nil
 }

@@ -8,6 +8,7 @@ import (
 type RouteConfig struct {
 	App            *gin.Engine
 	UserController *controller.UserController
+	AuthMiddleware gin.HandlerFunc
 }
 
 func (c *RouteConfig) SetupRoutes() {
@@ -19,11 +20,20 @@ func (c *RouteConfig) SetupRoutes() {
 	})
 
 	c.SetupAuthRoutes()
+	c.SetupMustAuthRoutes()
 }
 
 func (c *RouteConfig) SetupAuthRoutes() {
-	userRoutes := c.App.Group("/auth")
+	authRoutes := c.App.Group("/auth")
 	{
-		userRoutes.POST("/login", c.UserController.Login)
+		authRoutes.POST("/login", c.UserController.Login)
+	}
+}
+
+func (c *RouteConfig) SetupMustAuthRoutes() {
+	userRoutes := c.App.Group("/users")
+	userRoutes.Use(c.AuthMiddleware)
+	{
+		userRoutes.GET("/profile", c.UserController.Me)
 	}
 }

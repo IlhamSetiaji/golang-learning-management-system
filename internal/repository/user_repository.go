@@ -23,6 +23,7 @@ type UserRepositoryInterface interface {
 	FindFirstByField(db *gorm.DB, entity *entity.User, field string, value string) (*entity.User, error)
 	CountAll(entity *entity.User) (int64, error)
 	CountByField(entity *entity.User, field string, value string) (int64, error)
+	GetMyProfile(db *gorm.DB, entity *entity.User, id string) (*entity.User, error)
 }
 
 func NewUserRepository(db *gorm.DB, log *logrus.Logger) UserRepositoryInterface {
@@ -79,4 +80,8 @@ func (r *UserRepository) CountByField(entity *entity.User, field string, value s
 	var count int64
 	err := r.DB.Model(entity).Where(field+" = ?", value).Count(&count).Error
 	return count, err
+}
+
+func (r *UserRepository) GetMyProfile(db *gorm.DB, entity *entity.User, id string) (*entity.User, error) {
+	return entity, db.Preload("Roles").First(entity, "users.id = ?", id).Error
 }
