@@ -16,12 +16,13 @@ import (
 )
 
 type BootstrapConfig struct {
-	DB       *gorm.DB
-	App      *gin.Engine
-	Log      *logrus.Logger
-	Validate *validator.Validate
-	Config   *viper.Viper
-	Producer *amqp091.Channel
+	DB          *gorm.DB
+	App         *gin.Engine
+	Log         *logrus.Logger
+	Validate    *validator.Validate
+	Config      *viper.Viper
+	Producer    *amqp091.Channel
+	MailService *MailService
 }
 
 func Bootstrap(config *BootstrapConfig) {
@@ -29,10 +30,10 @@ func Bootstrap(config *BootstrapConfig) {
 	userRepository := repository.NewUserRepository(config.DB, config.Log)
 
 	// setup producers
-	userProducer := messaging.NewUserProducer(config.Producer, config.Log)
+	emailProducer := messaging.NewEmailProducer(config.Producer, config.Log)
 
 	// setup usecases
-	userUseCase := usecase.NewUserUseCase(config.DB, config.Log, config.Validate, userRepository, userProducer)
+	userUseCase := usecase.NewUserUseCase(config.DB, config.Log, config.Validate, userRepository, emailProducer, config.Config)
 
 	// setup controllers
 	userController := controller.NewUserController(config.Log, userUseCase)

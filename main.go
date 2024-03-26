@@ -11,14 +11,16 @@ func main() {
 	validate := config.NewValidator(viperConfig)
 	app := config.NewGin(viperConfig)
 	producer, _ := config.NewRabbitMQProducer(viperConfig, log)
+	mailService := config.NewMailService(log, viperConfig)
 
 	config.Bootstrap(&config.BootstrapConfig{
-		DB:       db,
-		App:      app,
-		Log:      log,
-		Validate: validate,
-		Config:   viperConfig,
-		Producer: producer,
+		DB:          db,
+		App:         app,
+		Log:         log,
+		Validate:    validate,
+		Config:      viperConfig,
+		Producer:    producer,
+		MailService: mailService,
 	})
 
 	// webPort := strconv.Itoa(viperConfig.GetInt("web.port"))
