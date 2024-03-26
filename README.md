@@ -118,6 +118,16 @@ To run, watch, and build this project
 ```bash
 CompileDaemon -command="./golang-learning-management-system"
 ```
+
+To migrate the database
+```bash
+go run ./cmd/migration/main.go
+```
+
+To run the consumer worker
+```bash
+go run ./cmd/worker/consumer.go
+```
     
 ## Contributing
 
