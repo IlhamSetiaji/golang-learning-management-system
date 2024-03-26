@@ -20,6 +20,20 @@ func (p *Producer[T]) GetQueue() *string {
 }
 
 func (p *Producer[T]) Send(ctx context.Context, event T) error {
+	// Declare the queue before publishing messages
+	_, err := p.Channel.QueueDeclare(
+		"users", // name
+		false,   // durable
+		false,   // delete when unused
+		false,   // exclusive
+		false,   // no-wait
+		nil,     // arguments
+	)
+	if err != nil {
+		p.Log.WithError(err).Error("failed to declare queue")
+		return err
+	}
+
 	bodyBytes, err := json.Marshal(event)
 	if err != nil {
 		p.Log.WithError(err).Error("failed to marshal event")
@@ -36,7 +50,7 @@ func (p *Producer[T]) Send(ctx context.Context, event T) error {
 			ContentType: "application/json",
 			Body:        bodyBytes,
 			Headers: amqp091.Table{
-				"id": event.GetId(),
+				"id": event.GetEmail(),
 			},
 		})
 	if err != nil {

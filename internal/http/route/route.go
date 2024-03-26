@@ -27,6 +27,7 @@ func (c *RouteConfig) SetupAuthRoutes() {
 	authRoutes := c.App.Group("/auth")
 	{
 		authRoutes.POST("/login", c.UserController.Login)
+		authRoutes.POST("/register", c.UserController.Register)
 	}
 }
 

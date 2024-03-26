@@ -1,12 +1,17 @@
 package model
 
+import "time"
+
 type UserEvent struct {
-	ID        string `json:"id,omitempty"`
-	Name      string `json:"name,omitempty"`
-	CreatedAt int64  `json:"created_at,omitempty"`
-	UpdatedAt int64  `json:"updated_at,omitempty"`
+	ID        uint      `json:"id,omitempty"`
+	Name      string    `json:"name,omitempty"`
+	Username  string    `json:"username,omitempty"`
+	Email     string    `json:"email,omitempty"`
+	RoleID    uint      `json:"role_id,omitempty"`
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 }
 
-func (u *UserEvent) GetId() string {
-	return u.ID
+func (u *UserEvent) GetEmail() string {
+	return u.Email
 }
