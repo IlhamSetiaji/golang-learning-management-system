@@ -16,3 +16,7 @@ type RegisterUserRequest struct {
 	Password string `json:"password" form:"password" binding:"required"`
 	RoleID   uint   `json:"role_id" form:"role" binding:"required"`
 }
+
+type SendEmailRequest struct {
+	Email string `json:"email" form:"email" binding:"required"`
+}

@@ -18,3 +18,7 @@ type UserMeResponse struct {
 	EmailVerifiedAt string         `json:"email_verified_at"`
 	Roles           []RoleResponse `json:"roles"`
 }
+
+type EmailSentResponse struct {
+	Message string `json:"message"`
+}

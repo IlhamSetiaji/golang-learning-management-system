@@ -31,6 +31,7 @@ type UserUseCaseInterface interface {
 	Login(ctx context.Context, request *request.UserLoginRequest) (*response.UserLoginResponse, error)
 	Me(ctx context.Context, userId uint) (*response.UserMeResponse, error)
 	Register(ctx context.Context, request *request.RegisterUserRequest) (*response.UserMeResponse, error)
+	SendEmail(ctx context.Context, request *request.SendEmailRequest) (*response.EmailSentResponse, error)
 }
 
 func NewUserUseCase(db *gorm.DB, log *logrus.Logger, validate *validator.Validate, userRepository repository.UserRepositoryInterface, producer *messaging.EmailProducer, viper *viper.Viper) UserUseCaseInterface {
@@ -159,4 +160,39 @@ func (c *UserUseCase) Register(ctx context.Context, request *request.RegisterUse
 	}
 
 	return c.Me(ctx, user.ID)
+}
+
+func (c *UserUseCase) SendEmail(ctx context.Context, request *request.SendEmailRequest) (*response.EmailSentResponse, error) {
+	tx := c.DB.WithContext(ctx).Begin()
+	defer tx.Rollback()
+	err := c.Validate.Struct(request)
+	if err != nil {
+		return nil, err
+	}
+	user, err := c.UserRepository.FindFirstByField(tx, &entity.User{}, "email", request.Email)
+	if err != nil {
+		c.Log.Errorf("Error when finding user by email: %v", err)
+		return nil, err
+	}
+	if user == nil {
+		c.Log.Errorf("User not found")
+		return nil, err
+	}
+	if err := tx.Commit().Error; err != nil {
+		c.Log.Warnf("Failed commit transaction : %+v", err)
+		return nil, err
+	}
+	emailEvent := &model.EmailEvent{
+		From:    "support@lanterntech.com",
+		To:      user.Email,
+		Subject: "Bagi Duitnya Bang :)",
+		Body:    "Biar silaturahmi tidak putus, bolehkah saya minta seratus? :)",
+	}
+	if err = c.Producer.Send(ctx, emailEvent); err != nil {
+		c.Log.Errorf("Error when sending email event: %v", err)
+		return nil, err
+	}
+	return &response.EmailSentResponse{
+		Message: "Email sent successfully",
+	}, nil
 }
